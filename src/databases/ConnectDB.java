@@ -70,6 +70,21 @@ public class ConnectDB {
         }
         return data;
     }
+    public List<String> readDataBase(String tableName, String columnName1, String columnName2)throws Exception{
+        List<String> data = new ArrayList<String>();
+
+        try {
+            connectToMySql();
+            statement = connect.createStatement();
+            resultSet = statement.executeQuery("select * from " + tableName);
+            data = getResultSetData(resultSet, columnName1, columnName2);
+        } catch (ClassNotFoundException e) {
+            throw e;
+        }finally{
+            close();
+        }
+        return data;
+    }
     private void close() {
         try{
             if(resultSet != null){
@@ -93,6 +108,16 @@ public class ConnectDB {
         }
         return dataList;
     }
+    private List<String> getResultSetData(ResultSet resultSet2, String columnName1, String columnName2) throws SQLException {
+        List<String> dataList = new ArrayList<String>();
+        while(resultSet.next()){
+            String itemName1 = resultSet.getString(columnName1);
+            String itemName2 = resultSet.getString(columnName2);
+            dataList.add(itemName1);
+            dataList.add(itemName2);
+        }
+        return dataList;
+    }
 
     public void InsertDataFromArryToMySql(int [] ArrayData,String tableName, String columnName)
     {
@@ -100,7 +125,7 @@ public class ConnectDB {
             connectToMySql();
             ps = connect.prepareStatement("DROP TABLE IF EXISTS `"+tableName+"`;");
             ps.executeUpdate();
-            ps = connect.prepareStatement("CREATE TABLE `"+tableName+"` (`ID` int(11) NOT NULL AUTO_INCREMENT,`SortingNumbers` bigint(20) DEFAULT NULL,  PRIMARY KEY (`ID`) );");
+            ps = connect.prepareStatement("CREATE TABLE `"+tableName+"` (`ID` int(11) NOT NULL AUTO_INCREMENT,`"+columnName+"` bigint(20) DEFAULT NULL,  PRIMARY KEY (`ID`) );");
             ps.executeUpdate();
             for(int n=0; n<ArrayData.length; n++){
                 ps = connect.prepareStatement("INSERT INTO "+tableName+" ( "+columnName+" ) VALUES(?)");
@@ -115,6 +140,40 @@ public class ConnectDB {
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
+    }
+
+    public void createTableFromStringToMySql(String tableName, String columnName){
+        try {
+            connectToMySql();
+            ps = connect.prepareStatement("DROP TABLE IF EXISTS `"+tableName+"`;");
+            ps.executeUpdate();
+            ps = connect.prepareStatement("CREATE TABLE `"+tableName+"` (`ID` int(11) NOT NULL AUTO_INCREMENT,`"+columnName+"` varchar(2500) DEFAULT NULL,  PRIMARY KEY (`ID`) );");
+            ps.executeUpdate();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void createTableFromStringToMySql(String tableName, String columnName1,String columnName2){
+        try {
+            connectToMySql();
+            ps = connect.prepareStatement("DROP TABLE IF EXISTS `"+tableName+"`;");
+            ps.executeUpdate();
+            ps = connect.prepareStatement("CREATE TABLE `"+tableName+"` (`ID` int(11) NOT NULL AUTO_INCREMENT,`"+columnName1+"` varchar(2500) DEFAULT NULL,`"+columnName2+"` varchar(2500) DEFAULT NULL,  PRIMARY KEY (`ID`) );");
+            ps.executeUpdate();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
     }
 
     public void InsertDataFromStringToMySql(String ArrayData,String tableName, String columnName)
@@ -147,6 +206,28 @@ public class ConnectDB {
             close();
         }
         return data;
+    }
+
+    public void InsertDataFromArrayListToMySql(List<String> list,String tableName, String columnName1,String columnName2 )
+    {
+        try {
+            connectToMySql();
+            String key = list.get(0);
+            String value = list.get(1);
+            System.out.println("key is:"+ key + " value is:" + value);
+
+            ps = connect.prepareStatement("INSERT INTO "+tableName+" ( " + columnName1 + "," + columnName2 + " ) VALUES(?,?)");
+            ps.setString(1,key);
+            ps.setString(2,value);
+            ps.executeUpdate();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     public void InsertDataFromArrayListToMySql(List<Object> list,String tableName, String columnName)
@@ -206,10 +287,10 @@ public class ConnectDB {
     {
         try {
             connectToMySql();
-                ps = connect.prepareStatement("INSERT INTO "+tableName+" ( " + columnName1 + "," + columnName2 + " ) VALUES(?,?)");
-                ps.setString(1,"Ankita Sing");
-                ps.setInt(2,3590);
-                ps.executeUpdate();
+            ps = connect.prepareStatement("INSERT INTO "+tableName+" ( " + columnName1 + "," + columnName2 + " ) VALUES(?,?)");
+            ps.setString(1,"Ankita Sing");
+            ps.setInt(2,3590);
+            ps.executeUpdate();
 
 
         } catch (IOException e) {
@@ -225,33 +306,33 @@ public class ConnectDB {
         List<User> list = new ArrayList<>();
         User user = null;
         try{
-        Connection conn = connectToMySql();
-        String query = "SELECT * FROM profile";
-        // create the java statement
-        Statement st = conn.createStatement();
-        // execute the query, and get a java resultset
-        ResultSet rs = st.executeQuery(query);
-        // iterate through the java resultset
-        while (rs.next())
-        {
-            String name = rs.getString("name");
-            int id = rs.getInt("id");
-            //System.out.format("%s, %s\n", name, id);
-            user = new User(name,id);
-            list.add(user);
+            Connection conn = connectToMySql();
+            String query = "SELECT * FROM profile";
+            // create the java statement
+            Statement st = conn.createStatement();
+            // execute the query, and get a java resultset
+            ResultSet rs = st.executeQuery(query);
+            // iterate through the java resultset
+            while (rs.next())
+            {
+                String name = rs.getString("name");
+                int id = rs.getInt("id");
+                //System.out.format("%s, %s\n", name, id);
+                user = new User(name,id);
+                list.add(user);
 
+            }
+            st.close();
+        }catch (Exception e){
+            System.err.println("Got an exception! ");
+            System.err.println(e.getMessage());
         }
-        st.close();
-       }catch (Exception e){
-           System.err.println("Got an exception! ");
-           System.err.println(e.getMessage());
-         }
-       return list;
+        return list;
     }
 
     public static void main(String[] args)throws IOException, SQLException, ClassNotFoundException {
 
-    	
+
         insertProfileToMySql("profile","name", "id");
         List<User> list = readFromMySql();
         for(User user:list){
